@@ -1,16 +1,29 @@
 const puppeteer = require("puppeteer");
+const cron = require("node-cron");
+const telegramBot = require("node-telegram-bot-api");
+require("dotenv").config();
+
+const TOKEN = process.env.TOKEN;
+
+const bot = new telegramBot(TOKEN, { polling: true });
 
 async function start() {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ["--window-size=1920,1040"],
   });
   const page = await browser.newPage();
+  await page.setUserAgent(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+  );
+  await page.setViewport({ width: 1700, height: 600 });
+
   await page.goto(
     "https://agendamentosonline.mne.gov.pt/AgendamentosOnline/app/scheduleAppointmentForm.jsf"
   );
   page.waitForNavigation();
 
+  await page.screenshot({ path: "initial_photo.png", fullPage: true });
   page
     .on("console", (message) =>
       console.log(
@@ -109,8 +122,9 @@ async function start() {
 
   console.log(info);
 
-  await page.screenshot({ path: "amazing.png", fullPage: true });
-  // await browser.close();
+  await page.screenshot({ path: "final_photo.png", fullPage: true });
+  await browser.close();
 }
 
 start();
+cron.schedule("0 */8 * * *", start);
