@@ -4,6 +4,7 @@ const telegramBot = require("node-telegram-bot-api");
 require("dotenv").config();
 
 const TOKEN = process.env.TOKEN;
+const CHAT_ID = process.env.CHAT_ID;
 
 const bot = new telegramBot(TOKEN, { polling: true });
 
@@ -37,9 +38,6 @@ async function start() {
     .on("requestfailed", (request) =>
       console.log(`${request.failure().errorText} ${request.url()}`)
     );
-  // go to login page
-  // await page.click("#j_idt61");
-  // await page.click("#indexForm\\:j_idt29");
 
   //cookie
   await page.click("#j_idt316");
@@ -115,6 +113,8 @@ async function start() {
     await page.waitForNetworkIdle(),
   ]);
 
+  await page.screenshot({ path: "final_photo.png", fullPage: true });
+
   const info = await page.$eval(
     "#scheduleForm\\:j_idt171 > div.ui-dialog-content.ui-widget-content > table > tbody > tr:nth-child(1) > td",
     (el) => el.textContent
@@ -122,9 +122,12 @@ async function start() {
 
   console.log(info);
 
-  await page.screenshot({ path: "final_photo.png", fullPage: true });
   await browser.close();
+
+  bot.sendMessage(CHAT_ID, info)
+  bot.sendPhoto(CHAT_ID, './final_photo.png');
 }
 
 start();
 cron.schedule("0 */8 * * *", start);
+
